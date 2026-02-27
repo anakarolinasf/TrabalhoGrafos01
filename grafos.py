@@ -1,26 +1,32 @@
+# Lista das Unidades da Federação (vértices)
 estados = [
     "AC", "AL", "AM", "AP", "BA", "CE", "DF", "ES", "GO", "MA", 
     "MG", "MS", "MT", "PA", "PB", "PE", "PI", "PR", "RJ", "RN", 
     "RO", "RR", "RS", "SC", "SE", "SP", "TO"
 ]
+
 n = len(estados)
 
+# 1. MATRIZ DE ADJACÊNCIA
+
+# Matriz n x n inicializada com 0
 matriz = [[0 for _ in range(n)] for _ in range(n)]
 
-#Funções criadas por você nas imagens
 def adicionarFronteira(estado1, estado2):
+    """Adiciona aresta não direcionada entre dois estados."""
     i = estados.index(estado1)
     j = estados.index(estado2)
     matriz[i][j] = 1
     matriz[j][i] = 1
 
 def removerFronteira(estado1, estado2):
+    """Remove aresta entre dois estados."""
     i = estados.index(estado1)
     j = estados.index(estado2)
     matriz[i][j] = 0
     matriz[j][i] = 0
 
-# Arestas (fronteiras do Brasil)
+# Arestas do grafo (fronteiras entre estados)
 arestas = [
     ("AC", "AM"), ("AC", "RO"),
     ("AL", "BA"), ("AL", "PE"), ("AL", "SE"),
@@ -44,11 +50,11 @@ arestas = [
     ("RS", "SC")
 ]
 
-# 1. MATRIZ DE ADJACÊNCIA (Preenchendo usando a sua função)
+# Preenchendo matriz de adjacência
 for u, v in arestas:
     adicionarFronteira(u, v)
 
-# Imprimindo a matriz de adjacência com a sua formatação
+# Impressão da matriz
 print("MATRIZ DE ADJACÊNCIA\n")
 print("    ", end="")
 for estado in estados:
@@ -64,7 +70,10 @@ for i in range(n):
 print("\n" + "="*60 + "\n")
 
 # 2. MATRIZ DE INCIDÊNCIA
+
 m = len(arestas)
+
+# Matriz n x m
 matriz_inc = [[0 for _ in range(m)] for _ in range(n)]
 
 for e in range(m):
@@ -74,53 +83,111 @@ for e in range(m):
     matriz_inc[i][e] = 1
     matriz_inc[j][e] = 1
 
-# 3. LISTA INDEXADA (Lista de Adjacência)
-lista_adj = {uf: [] for uf in estados}
+
+# 3. LISTA INDEXADA (α e β)
+
+# Lista auxiliar de adjacência
+lista_temp = {uf: [] for uf in estados}
+
 for u, v in arestas:
-    lista_adj[u].append(v)
-    lista_adj[v].append(u)
-    
+    lista_temp[u].append(v)
+    lista_temp[v].append(u)
+
 for uf in estados:
-    lista_adj[uf].sort()
+    lista_temp[uf].sort()
 
-# c) Algoritmos de Análise (Graus, Vizinhos e Histograma)
+# Vetores α e β
+alpha = [0] * (n + 1)
+beta = []
 
-graus = []
-vizinhos_dict = {}
-
-# Calculando os graus baseando-se na sua matriz de adjacência
+pos = 0
 for i in range(n):
-    grau = sum(matriz[i]) # A soma da linha dá o grau do vértice
-    uf = estados[i]
-    graus.append((grau, uf))
-    
-    # Pegando quem são os vizinhos
-    vizinhos = [estados[j] for j in range(n) if matriz[i][j] == 1]
-    vizinhos_dict[uf] = vizinhos
+    alpha[i] = pos
+    beta.extend(lista_temp[estados[i]])
+    pos += len(lista_temp[estados[i]])
 
-# Identificando máximos e mínimos
-max_grau = max(g for g, _ in graus)
-min_grau = min(g for g, _ in graus)
+alpha[n] = pos
 
-uf_max = [uf for g, uf in graus if g == max_grau]
-uf_min = [uf for g, uf in graus if g == min_grau]
+# Impressão da lista indexada
+print("LISTA INDEXADA (α e β)\n")
 
-print("ANÁLISE DE VIZINHOS (GRAUS)\n")
+print("α (início dos vizinhos):")
+for i in range(n):
+    print(f"{estados[i]} -> β[{alpha[i]}]")
 
-print(f"• Maior Grau: {max_grau}")
-for uf in uf_max:
-    print(f"  {uf} -> Vizinhos: {', '.join(vizinhos_dict[uf])}")
-    
-print(f"\n• Menor Grau: {min_grau}")
-for uf in uf_min:
-    print(f"  {uf} -> Vizinhos: {', '.join(vizinhos_dict[uf])}")
+print("\nβ (vizinhos sequenciais):")
+for i in range(len(beta)):
+    print(f"β[{i}] = {beta[i]}")
 
-# Criando o Histograma de frequências
-print("\n• Histograma de Frequência dos Graus:")
-freq = {}
-for g, _ in graus:
-    freq[g] = freq.get(g, 0) + 1
-    
-for g in sorted(freq.keys()):
-    barra = '█' * freq[g]
-    print(f"  Grau {g:2d} | {barra} ({freq[g]})")
+# FUNÇÃO GERAL DE ANÁLISE
+
+def analisar_grafo(nome, calcular_grau, obter_vizinhos):
+    print(f"\n{'='*60}")
+    print(f"ANÁLISE USANDO {nome}")
+    print(f"{'='*60}\n")
+
+    graus = []
+    vizinhos_dict = {}
+
+    for i in range(n):
+        uf = estados[i]
+        grau = calcular_grau(i)
+        graus.append((grau, uf))
+        vizinhos_dict[uf] = obter_vizinhos(i)
+
+    max_grau = max(g for g, _ in graus)
+    min_grau = min(g for g, _ in graus)
+
+    uf_max = [uf for g, uf in graus if g == max_grau]
+    uf_min = [uf for g, uf in graus if g == min_grau]
+
+    print(f"• Maior Grau: {max_grau}")
+    for uf in uf_max:
+        print(f"  {uf} -> {', '.join(vizinhos_dict[uf])}")
+
+    print(f"\n• Menor Grau: {min_grau}")
+    for uf in uf_min:
+        print(f"  {uf} -> {', '.join(vizinhos_dict[uf])}")
+
+    # Histograma de frequência
+    print("\n- Histograma:")
+    freq = {}
+    for g, _ in graus:
+        freq[g] = freq.get(g, 0) + 1
+
+    for g in sorted(freq.keys()):
+        print(f"  Grau {g:2d} | {'|' * freq[g]} ({freq[g]})")
+
+# ANÁLISES
+
+# Matriz de Adjacência
+def grau_matriz_adj(i):
+    return sum(matriz[i])
+
+def vizinhos_matriz_adj(i):
+    return [estados[j] for j in range(n) if matriz[i][j] == 1]
+
+analisar_grafo("MATRIZ DE ADJACÊNCIA", grau_matriz_adj, vizinhos_matriz_adj)
+
+# Matriz de Incidência
+def grau_matriz_inc(i):
+    return sum(matriz_inc[i])
+
+def vizinhos_matriz_inc(i):
+    vizinhos = []
+    for e in range(m):
+        if matriz_inc[i][e] == 1:
+            u, v = arestas[e]
+            vizinhos.append(v if estados[i] == u else u)
+    return sorted(vizinhos)
+
+analisar_grafo("MATRIZ DE INCIDÊNCIA", grau_matriz_inc, vizinhos_matriz_inc)
+
+# Lista Indexada
+def grau_lista_indexada(i):
+    return alpha[i+1] - alpha[i]
+
+def vizinhos_lista_indexada(i):
+    return beta[alpha[i]:alpha[i+1]]
+
+analisar_grafo("LISTA INDEXADA (α e β)", grau_lista_indexada, vizinhos_lista_indexada)
