@@ -32,7 +32,7 @@ arestas = [
     ("RS","SC")
 ]
 
-# 3) MATRIZ DE ADJACÊNCIA
+#  MATRIZ DE ADJACÊNCIA
 
 matriz = [[0 for _ in range(n)] for _ in range(n)]
 
@@ -46,7 +46,7 @@ for u, v in arestas:
     adicionarFronteira(u, v)
 
 print("\n" + "="*70)
-print("3) MATRIZ DE ADJACÊNCIA")
+print(" MATRIZ DE ADJACÊNCIA")
 print("="*70)
 
 print("     ", end="")
@@ -73,7 +73,7 @@ for e in range(m):
     matriz_inc[j][e] = 1
 
 print("\n" + "="*70)
-print("4) MATRIZ DE INCIDÊNCIA")
+print("MATRIZ DE INCIDÊNCIA")
 print("="*70)
 
 print("\nArestas numeradas:")
